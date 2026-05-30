@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maal Calculator</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f5f7fa;
+    padding:20px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    color:#333;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    margin-top:20px;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:center;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+}
+
+input{
+    width:100%;
+    border:none;
+    outline:none;
+    text-align:center;
+    font-size:16px;
+}
+
+button{
+    margin-top:15px;
+    padding:10px 20px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+.total-box{
+    margin-top:20px;
+    background:white;
+    padding:15px;
+    border-radius:8px;
+    font-size:18px;
+    font-weight:bold;
+    line-height:2;
+}
+@media print {
+
+button{
+display:none;
+}
+
+body{
+background:white;
+}
+.container{
+    overflow-x:auto;
+}
+
+table{
+width:100%;
+}
+
+}
+@media print {
+
+body{
+    zoom:65%;
+}
+
+table{
+    width:100%;
+    table-layout:auto;
+}
+
+th,td{
+    white-space:nowrap;
+    font-size:11px;
+    padding:4px;
+}
+
+.owner,
+.receiver{
+    min-width:140px;
+}
+
+button{
+    display:none;
+}
+
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    margin-top:20px;
+    table-layout:auto;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:center;
+    white-space:nowrap;
+}
+
+.owner,
+.receiver{
+    min-width:120px;
+}
+.same-customer td{
+    background-color:#dcfce7 !important;
+}
+@media print {
+
+.same-customer td{
+    background-color:#dcfce7 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>Maal Calculator</h1>
+
+<table id="calcTable">
+<thead>
+<tr>
+<th>Date</th>
+<th>Maal Kiska Hai</th>
+<th>Kisko Diya</th>
+<th>Diya KG</th>
+<th>Wapas KG</th>
+<th>Final KG</th>
+<th>Rate (₹)</th>
+<th>Total Amount</th>
+<th>-8%</th>
+<th>Manual Discount %</th>
+<th>Final Amount</th>
+<th>Customer Total</th>
+<th>Delete</th>
+</tr>
+</thead>
+
+<tbody id="tableBody">
+<tr>
+<td>
+<input type="date" class="entrydate">
+</td>
+<td><input type="text" class="owner" placeholder="Maal Kiska Hai"></td>
+<td><input type="text" class="receiver" placeholder="Kisko Diya"></td>
+<td><input type="number" class="kg" step="0.01" oninput="calculate()"></td>
+<td><input type="number" class="returnkg" step="0.01" oninput="calculate()"></td>
+<td class="finalkg">0</td>
+<td><input type="number" class="rate" step="0.01" oninput="calculate()"></td>
+<td class="total">0</td>
+<td class="minus8">0</td>
+
+<td>
+<input type="number"
+       class="manualdiscount"
+       value="0"
+       step="0.01"
+       oninput="calculate()">
+</td>
+
+<td class="finalamount">0</td>
+<td class="customertotal"></td>
+<td><button onclick="deleteRow(this)">❌</button></td>
+</tr>
+</tbody>
+</table>
+
+<button onclick="addRow()">+ Add Row</button>
+<button onclick="window.print()">🖨️ Print</button>
+<button onclick="clearAllData()">🗑️ New Register</button>
+
+<div class="total-box">
+<div>Final KG Total: <span id="grandKg">0</span></div>
+<div>Total Amount: ₹<span id="grandTotal">0</span></div>
+<div>Total (-8%): ₹<span id="grandMinus8">0</span></div>
+<div>Total Final Amount: ₹<span id="grandFinalAmount">0</span></div>
+</div>
+</div>
+
+<script>
+
+function calculate(){
+
+let grandKg=0;
+let grandTotal=0;
+let grandMinus8=0;
+let grandMinus6=0;
+let grandFinalAmount=0;
+
+const rows=document.querySelectorAll("#tableBody tr");
+
+rows.forEach(row=>{
+
+const kg=parseFloat(row.querySelector(".kg").value)||0;
+const returnkg=parseFloat(row.querySelector(".returnkg").value)||0;
+const rate=parseFloat(row.querySelector(".rate").value)||0;
+
+const finalkg=Math.max(0,kg-returnkg);
+
+const total=finalkg*rate;
+const minus8=total*0.92;
+
+const manualDiscount =
+parseFloat(row.querySelector(".manualdiscount").value) || 0;
+
+const finalAmount =
+total - (total * manualDiscount / 100);
+
+row.querySelector(".finalkg").innerText=finalkg.toFixed(2);
+row.querySelector(".total").innerText=total.toFixed(2);
+row.querySelector(".minus8").innerText=minus8.toFixed(2);
+row.querySelector(".finalamount").innerText=finalAmount.toFixed(2);
+
+grandKg+=finalkg;
+grandTotal+=total;
+grandMinus8+=minus8;
+grandFinalAmount+=finalAmount;
+
+});
+
+document.getElementById("grandKg").innerText=grandKg.toFixed(2);
+document.getElementById("grandTotal").innerText=grandTotal.toFixed(2);
+document.getElementById("grandMinus8").innerText=grandMinus8.toFixed(2);
+document.getElementById("grandFinalAmount").innerText=grandFinalAmount.toFixed(2);
+
+const customerData = {};
+
+// Same customer ka total nikalo
+rows.forEach(row => {
+
+const customer =
+row.querySelector(".receiver").value.trim();
+
+const finalAmount =
+parseFloat(
+row.querySelector(".finalamount").innerText
+) || 0;
+
+if(!customer) return;
+
+if(!customerData[customer]){
+customerData[customer] = {
+total:0,
+count:0
+};
+}
+
+customerData[customer].total += finalAmount;
+customerData[customer].count++;
+
+});
+saveData();
+
+// Pehle sab rows se color hatao
+rows.forEach(row=>{
+    row.classList.remove("same-customer");
+});
+
+// Duplicate customer ka total aur color
+const shownCustomers = {};
+
+rows.forEach(row => {
+
+const customer =
+row.querySelector(".receiver").value.trim();
+
+const cell =
+row.querySelector(".customertotal");
+
+cell.innerText = "";
+
+if(
+customerData[customer] &&
+customerData[customer].count > 1
+){
+
+// Same customer wali sab rows green
+row.classList.add("same-customer");
+
+if(!shownCustomers[customer]){
+
+cell.innerText =
+customerData[customer].total.toFixed(2);
+
+shownCustomers[customer] = true;
+}
+
+}
+
+});
+
+}
+function saveData(){
+
+localStorage.setItem(
+"maalCalculatorData",
+document.getElementById("tableBody").innerHTML
+);
+
+}
+
+function addRow(){
+
+const tbody=document.getElementById("tableBody");
+
+const row=document.createElement("tr");
+
+row.innerHTML=`
+<td><input type="date" class="entrydate"></td>
+<td><input type="text" class="owner" placeholder="Maal Kiska Hai"></td>
+<td><input type="text" class="receiver" placeholder="Kisko Diya"></td>
+<td><input type="number" class="kg" step="0.01" oninput="calculate()"></td>
+<td><input type="number" class="returnkg" step="0.01" oninput="calculate()"></td>
+<td class="finalkg">0</td>
+<td><input type="number" class="rate" step="0.01" oninput="calculate()"></td>
+<td class="total">0.00</td>
+<td class="minus8">0.00</td>
+
+<td>
+<input type="number"
+       class="manualdiscount"
+       value="0"
+       step="0.01"
+       oninput="calculate()">
+</td>
+
+<td class="finalamount">0.00</td>
+<td class="customertotal"></td>
+<td><button onclick="deleteRow(this)">❌</button></td>
+`;
+
+tbody.appendChild(row);
+}
+
+function deleteRow(btn){
+btn.parentElement.parentElement.remove();
+calculate();
+}
+window.onload = function(){
+
+const savedData =
+localStorage.getItem("maalCalculatorData");
+
+if(savedData){
+
+document.getElementById("tableBody").innerHTML =
+savedData;
+
+calculate();
+
+}
+
+}
+function clearAllData(){
+
+if(confirm("Kya aap pura data delete karke naya register shuru karna chahte hain?")){
+
+localStorage.removeItem("maalCalculatorData");
+
+location.reload();
+
+}
+
+}
+window.addEventListener("beforeunload", function (e) {
+
+e.preventDefault();
+
+e.returnValue = "";
+
+});
+</script>
+
+</body>
+</html>
